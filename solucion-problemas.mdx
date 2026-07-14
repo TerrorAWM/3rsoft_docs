@@ -1,0 +1,86 @@
+---
+title: "Solución de problemas"
+description: "Errores frecuentes durante la instalación y su solución."
+icon: "circle-question"
+---
+
+## `apt-get update` falla por un cambio de repositorio
+
+Mensaje habitual:
+
+```text
+Repository '…ondrej/php…' changed its 'Label' value … must be accepted explicitly
+```
+
+Los scripts ya utilizan `--allow-releaseinfo-change`. Para resolverlo manualmente:
+
+```bash
+sudo apt-get update --allow-releaseinfo-change
+```
+
+## No se encuentra la ruta del archivo `.zip`
+
+Introduzca la ruta **sin comillas**:
+
+```text
+/root/HWDPOS-v1.5.0.zip
+```
+
+El script también intenta eliminar automáticamente las comillas pegadas por error.
+
+## No aparece el resumen final
+
+Esto significa que el proceso se detuvo antes de finalizar. Revise el mensaje de error mostrado anteriormente y vuelva a ejecutar el script.
+
+<Tip>
+  Los scripts son idempotentes, por lo que pueden ejecutarse nuevamente sin reinstalar innecesariamente los componentes que ya funcionan.
+</Tip>
+
+## Una extensión de PHP aparece como ausente aunque está instalada
+
+Los scripts detectan la versión real de PHP-FPM y comprueban los paquetes mediante:
+
+```bash
+dpkg -s phpX.Y-<extension>
+```
+
+La comprobación no depende de la versión de `php` configurada en el terminal.
+
+## Se olvidó la contraseña del administrador
+
+Abra el panel y seleccione la **opción 7**:
+
+```bash
+sudo hwdpanel
+```
+
+También puede ejecutar:
+
+```bash
+php /var/www/HWDPOS/scripts/hwd-admin.php reset-password <usuario>
+```
+
+<Note>
+  Esta recuperación requiere acceso al servidor con privilegios de administrador. Consulte [Panel de administración](/hwdpanel).
+</Note>
+
+## Reinstalar el sitio desde cero
+
+<Warning>
+  Esta operación elimina la configuración actual. Realice una copia de seguridad antes de continuar.
+</Warning>
+
+<Steps>
+  <Step title="Elimine los archivos de instalación">
+    ```bash
+    sudo rm -f /var/www/HWDPOS/storage/installed.lock
+    sudo rm -f /var/www/HWDPOS/storage/config.php
+    ```
+  </Step>
+  <Step title="Elimine la base de datos correspondiente">
+    Elimine la base de datos de HWD POS desde su gestor de base de datos.
+  </Step>
+  <Step title="Vuelva a abrir el asistente">
+    Abra nuevamente la ruta `/install` en el navegador.
+  </Step>
+</Steps>

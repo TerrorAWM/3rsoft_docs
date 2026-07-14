@@ -1,0 +1,40 @@
+---
+title: "Requisitos previos"
+description: "Requisitos de servidor y recomendaciones antes de instalar HWD POS."
+icon: "list-check"
+---
+
+Antes de instalar HWD POS, verifique que su servidor cumple los siguientes requisitos.
+
+## Requisitos del servidor
+
+| Requisito | Detalle |
+| --- | --- |
+| Sistema operativo | Ubuntu (los scripts usan `install-ubuntu.sh`). |
+| Privilegios | Acceso `root` o un usuario con `sudo`. |
+| PHP | Versión 8.2 u 8.3 (predeterminada: 8.3). |
+| Puerto | El puerto **80** debe estar libre. |
+| Red | Acceso a `https://3r.com.pa/hwdpos_inst` para descargar los scripts de instalación. |
+
+<Note>
+  La impresión (CUPS, Chromium y el worker `hwpos-print`) se instala de forma predeterminada. Puede omitirla con `WITH_PRINTING=no`. Consulte [Variables de configuración](/variables).
+</Note>
+
+## Recomendación de seguridad al ejecutar scripts
+
+Varios comandos de esta guía descargan un script y lo ejecutan como `root` mediante `curl ... | sudo bash`. Es una forma habitual de instalar, pero si desea revisar el contenido antes de ejecutarlo puede descargarlo primero, leerlo y ejecutarlo después:
+
+```bash
+# 1. Descargar el script
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh -o bootstrap.sh
+
+# 2. Revisar su contenido
+less bootstrap.sh
+
+# 3. Ejecutarlo una vez revisado
+sudo bash bootstrap.sh
+```
+
+<Tip>
+  Los scripts son **idempotentes**: puede volver a ejecutarlos sin reinstalar innecesariamente los componentes que ya funcionan.
+</Tip>

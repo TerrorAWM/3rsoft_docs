@@ -1,0 +1,25 @@
+---
+title: "Variables de configuración"
+description: "Variables que puede anteponer a los comandos de instalación."
+icon: "gear"
+---
+
+Las variables pueden colocarse antes de cualquier comando de instalación.
+
+| Variable | Valor predeterminado | Descripción |
+| --- | --- | --- |
+| `DOMAIN` | `_` | Valor de `server_name` en Nginx. Ejemplo: `pos.tienda.com`. |
+| `PHP_VER` | `8.3` | Versión de PHP. Valores compatibles: `8.2` y `8.3`. |
+| `WITH_PRINTING` | `yes` | Use `no` para omitir CUPS, Chromium y el worker de impresión. |
+| `ENV_ONLY` | `no` | Use `yes` o `1` para instalar solamente el entorno, sin el código de HWD POS. |
+| `APP_DIR` | `/var/www/HWDPOS` | Directorio de instalación del código. |
+| `DB_NAME` | `hwd_pos` | Nombre de la base de datos. |
+| `DB_USER` | `hwdpos_manager` | Usuario de la base de datos. |
+| `HWPOS_ZIP` | Sin valor | Ruta local o URL del archivo `.zip` utilizado por `bootstrap.sh`. |
+| `HWPOS_BASE_URL` | `https://3r.com.pa/hwdpos_inst` | Dirección desde la que se descargan `bootstrap.sh`, `check.sh`, el panel y otros archivos de instalación. |
+
+## Ejemplo de instalación personalizada
+
+```bash
+sudo DOMAIN=pos.tienda.com PHP_VER=8.3 WITH_PRINTING=no bash /var/www/HWDPOS/deploy/install-ubuntu.sh
+```

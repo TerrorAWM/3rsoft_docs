@@ -1,0 +1,79 @@
+---
+title: "Panel de administración"
+description: "Administre HWD POS desde el servidor con el comando hwdpanel."
+icon: "sliders"
+---
+
+El instalador crea el comando `hwdpanel` en el servidor. Permite administrar HWD POS sin utilizar la interfaz web.
+
+```bash
+sudo hwdpanel
+```
+
+<Note>
+  `hwdpanel` y las herramientas de recuperación de esta página requieren acceso al servidor con privilegios de administrador (`root`/`sudo`). Son operaciones normales de mantenimiento del sistema.
+</Note>
+
+## Funciones disponibles
+
+- Reiniciar, iniciar o detener Nginx y PHP-FPM.
+- Reiniciar, iniciar o detener el worker de impresión `hwpos-print`.
+- Restablecer la contraseña de cualquier usuario o administrador.
+- Consultar las credenciales de la base de datos.
+- Consultar las variables del entorno.
+- Ejecutar el diagnóstico `check.sh`.
+- Mostrar la dirección IP y la URL de acceso.
+- Actualizar el propio panel desde la red.
+
+## Restablecer la contraseña de un administrador
+
+Desde el panel, seleccione la **opción 7**, elija el usuario e introduzca la nueva contraseña.
+
+También puede utilizar la herramienta administrativa directamente:
+
+```bash
+# Listar los usuarios
+php /var/www/HWDPOS/scripts/hwd-admin.php list-users
+
+# Solicita la nueva contraseña de forma interactiva
+php /var/www/HWDPOS/scripts/hwd-admin.php reset-password admin
+
+# Establece directamente la contraseña indicada
+php /var/www/HWDPOS/scripts/hwd-admin.php reset-password admin '<NUEVA_CONTRASEÑA>'
+```
+
+<Warning>
+  Sustituya `<NUEVA_CONTRASEÑA>` por una contraseña robusta y única. Evite reutilizar contraseñas y no comparta credenciales reales en capturas ni en tickets de soporte.
+</Warning>
+
+## Otras utilidades administrativas
+
+```bash
+php /var/www/HWDPOS/scripts/hwd-admin.php db-info
+php /var/www/HWDPOS/scripts/hwd-admin.php env
+php /var/www/HWDPOS/scripts/hwd-admin.php list-users
+```
+
+## Actualizar `hwdpanel` desde la red
+
+El panel puede descargar la versión más reciente y reemplazar la copia local. Antes de sustituirla:
+
+<Steps>
+  <Step title="Copia de seguridad">
+    Crea una copia de seguridad con extensión `.bak`.
+  </Step>
+  <Step title="Validación">
+    Comprueba la sintaxis del archivo nuevo.
+  </Step>
+  <Step title="Reemplazo">
+    Solo reemplaza la versión local si la validación es correcta.
+  </Step>
+</Steps>
+
+Desde el panel, seleccione la **opción 12: Actualizar el panel desde la red**. También puede actualizarlo directamente:
+
+```bash
+sudo bash /var/www/HWDPOS/deploy/check.sh --update-panel
+```
+
+En el menú de `check.sh` también puede utilizar la **opción U**.

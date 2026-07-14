@@ -1,0 +1,54 @@
+---
+title: "Impresión"
+description: "Configure CUPS, Chromium y el worker hwpos-print."
+icon: "print"
+---
+
+La impresión se instala de forma predeterminada cuando `WITH_PRINTING=yes`. El servicio `hwpos-print` procesa la cola de impresión y envía los trabajos uno por uno.
+
+## Estado y actividad del servicio
+
+<CodeGroup>
+
+```bash Estado
+sudo systemctl status hwpos-print
+```
+
+```bash Actividad en tiempo real
+sudo journalctl -u hwpos-print -f
+```
+
+</CodeGroup>
+
+También puede consultar o controlar el servicio desde [`hwdpanel`](/hwdpanel).
+
+## Permisos del usuario del servicio
+
+El usuario `www-data` debe pertenecer a los siguientes grupos:
+
+- `lp`, para acceder a impresoras USB.
+- `lpadmin`, para administrar colas IPP.
+
+<Note>
+  El instalador configura estos grupos automáticamente.
+</Note>
+
+## Problemas con documentos PDF en formato A4
+
+Si la generación o impresión de documentos PDF A4 falla:
+
+<Steps>
+  <Step title="Instale Google Chrome">
+    Instale `google-chrome-stable` mediante su paquete `.deb`.
+  </Step>
+  <Step title="Abra los Ajustes de HWD POS">
+    Vaya a **Ajustes** en la interfaz de HWD POS.
+  </Step>
+  <Step title="Configure la ruta del ejecutable">
+    Indique la ruta del ejecutable en **chrome\_path**.
+  </Step>
+</Steps>
+
+<Warning>
+  Chromium instalado mediante **Snap** puede presentar problemas al ejecutarse en modo _headless_ como servicio del sistema.
+</Warning>
