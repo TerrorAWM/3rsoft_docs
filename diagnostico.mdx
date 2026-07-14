@@ -1,0 +1,71 @@
+---
+title: "Diagnóstico y reparación"
+description: "Revise e instale los componentes de HWD POS con check.sh."
+icon: "stethoscope"
+---
+
+El script `check.sh` revisa el estado de los componentes principales de HWD POS y permite instalar o reparar los que estén ausentes o mal configurados.
+
+Puede ejecutarse desde la copia local incluida en HWD POS o directamente desde la red.
+
+## Ejecutar el diagnóstico
+
+<Tabs>
+  <Tab title="Copia local">
+    Muestra el informe y abre el menú de reparación.
+
+    ```bash
+    sudo bash /var/www/HWDPOS/deploy/check.sh
+    ```
+  </Tab>
+  <Tab title="Desde la red">
+    No es necesario descargar el archivo manualmente. Este comando descarga y ejecuta la versión publicada en el servidor de HWD POS.
+
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/check.sh | sudo bash
+    ```
+  </Tab>
+</Tabs>
+
+## Generar solamente el informe
+
+Use `CHECK_ONLY=1` para ver el diagnóstico sin abrir el menú de reparación.
+
+<CodeGroup>
+
+```bash Copia local
+sudo CHECK_ONLY=1 bash /var/www/HWDPOS/deploy/check.sh
+```
+
+```bash Desde la red
+curl -fsSL https://3r.com.pa/hwdpos_inst/check.sh | sudo CHECK_ONLY=1 bash
+```
+
+</CodeGroup>
+
+## Componentes revisados
+
+El diagnóstico revisa o instala los siguientes componentes:
+
+- PHP y sus extensiones.
+- La versión real de PHP-FPM en uso.
+- MariaDB.
+- Nginx y la configuración del sitio.
+- La base de datos de HWD POS.
+- CUPS.
+- Chromium.
+- El worker de impresión `hwpos-print`.
+- El panel local `hwdpanel`.
+- El código de HWD POS.
+- El puerto 80.
+
+## Menú de reparación
+
+En el menú interactivo:
+
+| Opción | Acción |
+| --- | --- |
+| Número | Instala o repara el componente indicado. |
+| **T** | Instala o repara todo lo que falte. |
+| **U** | Actualiza el panel `hwdpanel`. |
+| **S** | Sale del menú. |

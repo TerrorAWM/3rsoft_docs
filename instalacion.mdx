@@ -1,0 +1,39 @@
+---
+title: "Instalación por red"
+description: "Instale solo el entorno o el sistema completo con bootstrap.sh."
+icon: "download"
+---
+
+El script `bootstrap.sh` permite preparar únicamente el entorno o realizar una instalación completa.
+
+<Tabs>
+  <Tab title="Solo el entorno">
+    Instala las dependencias y los servicios necesarios, pero **no** instala el código de HWD POS.
+
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo ENV_ONLY=1 bash
+    ```
+  </Tab>
+  <Tab title="Con un paquete específico">
+    Indique la ruta local del archivo `.zip` en el servidor o una URL desde la que pueda descargarse.
+
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo HWPOS_ZIP=/root/HWDPOS-v1.5.0.zip bash
+    ```
+  </Tab>
+  <Tab title="Automática">
+    Ejecuta la instalación completa utilizando la configuración predeterminada.
+
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo bash
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Puede anteponer variables de configuración a cualquier comando de instalación, por ejemplo `DOMAIN`, `PHP_VER` o `WITH_PRINTING`. Consulte [Variables de configuración](/variables).
+</Note>
+
+## Comprobar el resultado
+
+Al finalizar, el script muestra un resumen. Si no aparece, el proceso se detuvo antes de terminar; revise el mensaje de error y vuelva a ejecutarlo (los scripts son idempotentes). Consulte también [Diagnóstico y reparación](/diagnostico) para verificar el estado de cada componente.

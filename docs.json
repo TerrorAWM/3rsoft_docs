@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "HWD POS",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -18,37 +18,43 @@
         ]
       }
     ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    "groups": [
+      {
+        "group": "Primeros pasos",
+        "icon": "flag",
+        "pages": [
+          "index",
+          "requisitos",
+          "instalacion"
+        ]
+      },
+      {
+        "group": "Operación y mantenimiento",
+        "icon": "wrench",
+        "pages": [
+          "diagnostico",
+          "hwdpanel",
+          "impresion",
+          "actualizaciones"
+        ]
+      },
+      {
+        "group": "Referencia",
+        "icon": "book",
+        "pages": [
+          "variables",
+          "comandos",
+          "solucion-problemas"
+        ]
+      }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
-    }
+    "links": []
   },
   "contextual": {
     "options": [
@@ -62,11 +68,5 @@
       "vscode"
     ]
   },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
-  }
+  "description": "Guía de instalación, diagnóstico, administración y actualización de HWD POS."
 }
