@@ -1,0 +1,106 @@
+---
+title: "Puerto del sitio"
+description: "Elija el puerto durante la instalación o cámbielo después."
+icon: "plug"
+---
+
+El instalador **pregunta el puerto** del sitio web y usa **80** si no se indica otro.
+
+```text
+Puerto [80]:
+```
+
+| Puerto | Cómo se entra | Cuándo conviene |
+| --- | --- | --- |
+| **80** (predeterminado) | `http://192.168.1.50/` | Siempre que el servidor sea solo para HWD POS. No hay que escribir el puerto. |
+| Otro, por ejemplo **8080** | `http://192.168.1.50:8080/` | Cuando el servidor ya tiene otro sitio en el 80. |
+
+También puede fijarlo de antemano, sin que pregunte:
+
+```bash
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo WEB_PORT=8080 bash
+```
+
+<Note>
+  Sin terminal interactivo (instalación desatendida o por tubería sin `/dev/tty`) se usa el **80**.
+</Note>
+
+## Puertos que se rechazan
+
+El instalador **no acepta** los puertos que ya usa el propio sistema, y lo dice antes de tocar nada en
+lugar de dejar el servidor web sin arrancar:
+
+| Puerto | Lo usa |
+| --- | --- |
+| `22` | SSH |
+| `3306` | MariaDB |
+| `8108` | El buscador (Typesense) |
+
+También valida que el número esté entre 1 y 65535.
+
+## Qué cambia el instalador al elegir un puerto
+
+Son **cuatro cosas, y van juntas**:
+
+<Steps>
+  <Step title="La configuración del sitio">
+    El `VirtualHost *:PUERTO` en Apache, o el `listen PUERTO;` en Nginx.
+  </Step>
+  <Step title="El Listen del servidor">
+    Apache solo atiende un puerto si lo tiene en un `Listen`. **Es el paso que se olvida al hacerlo a
+    mano**, y deja el sitio sin escuchar aunque el `VirtualHost` sea correcto.
+  </Step>
+  <Step title="El cortafuegos">
+    `ufw` en Ubuntu y Debian; `firewalld` en AlmaLinux, Rocky y RHEL.
+  </Step>
+  <Step title="Las direcciones del resumen">
+    Las URL que imprime al terminar incluyen el `:puerto` solo cuando no es el 80.
+  </Step>
+</Steps>
+
+## Cambiar el puerto después de instalar
+
+La forma más simple es **volver a ejecutar el instalador** con el puerto nuevo. Es seguro: no borra
+datos.
+
+```bash
+sudo WEB_PORT=8080 bash /var/www/HWDPOS/deploy/install-ubuntu.sh
+```
+
+A mano son tres pasos:
+
+<Tabs>
+  <Tab title="Ubuntu / Debian (Apache)">
+    ```bash
+    sudo sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' /etc/apache2/sites-available/hwpos.conf
+    sudo sed -i 's/^Listen 80$/Listen 8080/'                  /etc/apache2/ports.conf
+    sudo apache2ctl configtest && sudo systemctl restart apache2
+    sudo ufw allow 8080/tcp
+    ```
+  </Tab>
+  <Tab title="AlmaLinux / Rocky / RHEL (httpd)">
+    ```bash
+    sudo sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' /etc/httpd/conf.d/hwpos.conf
+    echo "Listen 8080" | sudo tee /etc/httpd/conf.d/hwpos-listen.conf
+    sudo httpd -t && sudo systemctl restart httpd
+    sudo firewall-cmd --permanent --add-port=8080/tcp && sudo firewall-cmd --reload
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  **Las terminales, tablets y clientes de escritorio** tienen que apuntar a la dirección con el puerto
+  incluido. El sistema no necesita ningún ajuste: sus enlaces internos son relativos, y las pocas
+  direcciones absolutas que genera incluyen el puerto por sí solas.
+</Note>
+
+## Convivir con otro sitio en el mismo servidor
+
+Si el objetivo es tener dos sitios en el mismo servidor, además del puerto existe una alternativa que
+evita escribir el puerto en la dirección: mantener el **80** y usar **nombres de dominio distintos**
+(`ServerName`) para cada sitio.
+
+## El diagnóstico también lo tiene en cuenta
+
+`check.sh` **lee el puerto de la configuración** del sitio en lugar de suponer el 80. Si su sitio está
+en el 8080, la línea del diagnóstico dirá `Puerto 8080 escuchando`.

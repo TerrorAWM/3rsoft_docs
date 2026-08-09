@@ -1,0 +1,115 @@
+---
+title: "AlmaLinux, Rocky y CentOS"
+description: "Qué cambia en la familia RPM y por qué SELinux es el paso decisivo."
+icon: "linux"
+---
+
+HWD POS se instala en **AlmaLinux 9 y 8**, y por extensión en **Rocky Linux**, **RHEL** y **CentOS
+Stream**, con su propio instalador:
+
+```bash
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo bash
+```
+
+`bootstrap.sh` detecta que el sistema usa `dnf` y descarga `install-almalinux.sh`. Las preguntas, los
+modos y el resumen final son los mismos que en Ubuntu.
+
+<Warning>
+  No es «lo mismo con otro gestor de paquetes». Son **cinco** diferencias, y la tercera es la que
+  arruina una instalación hecha a mano.
+</Warning>
+
+## Las cinco diferencias
+
+<AccordionGroup>
+  <Accordion title="1. PHP viene por módulos, no por paquetes con versión">
+    En esta familia PHP se habilita con `dnf module enable php:8.2` y los paquetes **no llevan versión
+    en el nombre** (`php-fpm`, no `php8.2-fpm`). Si el sistema no ofrece 8.1 o superior, el instalador
+    añade el repositorio **Remi** y vuelve a intentarlo; si aun así no llega, se detiene con un mensaje
+    claro en vez de instalar una versión que no sirve.
+
+    Además, `pdo_mysql` viene dentro de **`php-mysqlnd`**: el paquete `php-mysql` no existe.
+  </Accordion>
+
+  <Accordion title="2. El servicio se llama httpd y su configuración va en un solo directorio">
+    No existen `sites-available`, `sites-enabled` ni `a2ensite`. El sitio queda en
+    `/etc/httpd/conf.d/hwpos.conf` y el `Listen` del puerto en `/etc/httpd/conf.d/hwpos-listen.conf`.
+
+    El instalador también aparta la página de bienvenida de fábrica
+    (`/etc/httpd/conf.d/welcome.conf`), que si no se queda con la raíz del sitio.
+  </Accordion>
+
+  <Accordion title="3. SELinux está activo de fábrica — el paso decisivo">
+    Sin configurarlo, **la instalación parece correcta pero el sistema no puede escribir, ni
+    actualizarse, ni enviar correo, ni validar la licencia** — y **ningún mensaje de error menciona
+    SELinux**. Es la causa más común de un servidor RPM «instalado pero que no funciona».
+
+    El instalador aplica los contextos y los permisos necesarios:
+
+    | Ajuste | Para qué |
+    | --- | --- |
+    | Contexto `httpd_sys_content_t` en el proyecto | Leer el código. |
+    | Contexto `httpd_sys_rw_content_t` en `storage/` y `public/uploads` | Escribir respaldos, registros, configuración y las subidas. |
+    | `httpd_unified` | El sistema **se autoactualiza**: el usuario web reescribe su propio código. |
+    | `httpd_can_network_connect` | Licencia, actualizaciones, SMTP, facturación fiscal y el buscador. |
+    | `httpd_can_network_connect_db` | Base de datos local por socket o remota por TCP. |
+    | `httpd_execmem` | Chromium para el PDF A4 y `lp` para imprimir. |
+
+    El **resumen final verifica los tres primeros**, así que no hay que confiar en que «se hizo».
+
+    Si algo se bloquea después, esto lo confirma:
+
+    ```bash
+    sudo ausearch -m avc -ts recent
+    ```
+  </Accordion>
+
+  <Accordion title="4. El cortafuegos es firewalld">
+    En lugar de `ufw`. El instalador abre el puerto del sitio, el 443 y `ssh`, y en modo solo base de
+    datos abre el 3306 únicamente hacia la IP autorizada, con una regla específica.
+
+    ```bash
+    sudo firewall-cmd --list-all
+    ```
+  </Accordion>
+
+  <Accordion title="5. PHP-FPM corre como apache y con un grupo de procesos propio">
+    El usuario del servidor web es **`apache`** (no `www-data`). El instalador crea un **pool propio**
+    en `/etc/php-fpm.d/hwpos.conf`, con su propio socket, para **no alterar** el pool `www` de fábrica
+    que puede estar sirviendo a otro sitio del servidor.
+  </Accordion>
+</AccordionGroup>
+
+## Diagnóstico y reparación en esta familia
+
+`check.sh` funciona igual, y en esta familia:
+
+- Consulta los paquetes con **`rpm -q`** (no con `dpkg`), sabiendo que `php-fpm` no lleva versión y que
+  `pdo_mysql` está en `php-mysqlnd`.
+- Toma el usuario del servidor web correcto (`apache`).
+- **Repara ejecutando `install-almalinux.sh`**, que además deja SELinux y el cortafuegos en su sitio.
+
+```bash
+sudo bash /var/www/HWDPOS/deploy/check.sh
+```
+
+<Note>
+  Es seguro reejecutar el instalador: no borra datos y vuelve a dejar permisos, configuración, SELinux,
+  cortafuegos y servicios en su sitio.
+</Note>
+
+## Comprobaciones rápidas propias de esta familia
+
+```bash
+# ¿Está SELinux activo y en qué modo?
+getenforce
+
+# ¿Tienen las carpetas de escritura su contexto?
+ls -Zd /var/www/HWDPOS/storage /var/www/HWDPOS/public/uploads
+
+# ¿Están los permisos de red concedidos?
+getsebool httpd_can_network_connect httpd_can_network_connect_db httpd_unified
+
+# Servicios
+sudo systemctl status httpd php-fpm hwpos-print hwpos-plugins
+```

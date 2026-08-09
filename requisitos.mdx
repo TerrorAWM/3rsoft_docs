@@ -1,28 +1,83 @@
 ---
 title: "Requisitos previos"
-description: "Requisitos de servidor y recomendaciones antes de instalar HWD POS."
+description: "Sistemas operativos admitidos, hardware y red necesarios para instalar HWD POS."
 icon: "list-check"
 ---
 
-Antes de instalar HWD POS, verifique que su servidor cumple los siguientes requisitos.
+Antes de instalar HWD POS, revise que su servidor cumpla estos requisitos. Para saber **qué hace cada
+componente** que se instala, consulte [Componentes del sistema](/componentes).
 
-## Requisitos del servidor
+## Sistemas operativos admitidos
+
+Hay **un instalador por familia de sistema**, con las mismas preguntas y el mismo resumen final.
+
+| Sistema | Versiones probadas | Instalador |
+| --- | --- | --- |
+| **Ubuntu Server** | **24.04 LTS** (recomendada), 22.04 LTS | `install-ubuntu.sh` |
+| **Debian** | 12 | `install-ubuntu.sh` |
+| **AlmaLinux** | **9** (recomendada), 8 | `install-almalinux.sh` |
+| **Rocky Linux / RHEL / CentOS Stream** | 9, 8 | `install-almalinux.sh` |
+
+<Tip>
+  **Recomendación: Ubuntu Server 24.04 LTS.** Trae PHP 8.3 en sus repositorios oficiales, es la
+  combinación más probada y la que menos pasos manuales necesita.
+</Tip>
+
+<Warning>
+  Si instala sobre **AlmaLinux, Rocky, RHEL o CentOS**, lea antes
+  [AlmaLinux, Rocky y CentOS](/almalinux). No es «lo mismo con otro gestor de paquetes»: **SELinux
+  está activo de fábrica** y, sin configurarlo, el sistema queda instalado pero no puede escribir, ni
+  actualizarse, ni enviar correo, ni validar la licencia.
+</Warning>
+
+**Sistemas no admitidos:** Windows Server (el sistema usa servicios de systemd, rutas de impresión de
+Linux y `pcntl`) y cualquier Linux con PHP anterior a 8.1.
+
+## Hardware
+
+|  | Mínimo | Recomendado (tienda con 3 a 8 terminales) |
+| --- | --- | --- |
+| Procesador | 2 núcleos | 4 núcleos |
+| Memoria | 2 GB | **4 GB o más** |
+| Disco | 20 GB | 40 GB SSD |
+| Arquitectura | 64 bits | 64 bits |
+
+<Note>
+  **La memoria es lo que determina cuántas ventas simultáneas aguanta.** El instalador calcula los
+  procesos de PHP a razón de unos **60 MB por proceso**, con un mínimo de 10 y un máximo de 80, y los
+  deja siempre por debajo del cupo de conexiones de la base de datos (300). Con 2 GB salen unos 33
+  procesos; con 4 GB, unos 68. Ese valor se consulta y se ajusta después en **Sistema → Capacidad de
+  conexiones** o con `hwdpanel` (opción 19).
+</Note>
+
+El disco crece sobre todo por tres cosas: los **respaldos** de la base de datos, las **fotos de
+productos** y las **fotos y firmas de entrega**.
+
+## Red
 
 | Requisito | Detalle |
 | --- | --- |
-| Sistema operativo | Ubuntu (los scripts usan `install-ubuntu.sh`). |
-| Privilegios | Acceso `root` o un usuario con `sudo`. |
-| PHP | Versión 8.2 u 8.3 (predeterminada: 8.3). |
-| Puerto | El puerto **80** debe estar libre. |
-| Red | Acceso a `https://3r.com.pa/hwdpos_inst` para descargar los scripts de instalación. |
+| **IP fija en la red local** | Las terminales, tablets e impresoras apuntan al servidor por su IP. Fíjela en el servidor o resérvela en el router. |
+| **Salida a internet** | Necesaria para **activar la licencia** (`https://3r.com.pa/pos`), buscar actualizaciones y enviar correo. No hace falta que el servidor sea accesible *desde* internet. |
+| **Puerto del sitio** | `80` de forma predeterminada, y se puede elegir otro durante la instalación. Consulte [Puerto del sitio](/puerto). |
+| **Puerto 3306** | Solo si la base de datos está en **otro** servidor. Ábralo únicamente hacia la IP del servidor web. |
+| **Acceso a `https://3r.com.pa/hwdpos_inst`** | Desde ahí se descargan los scripts de instalación. |
 
 <Note>
-  La impresión (CUPS, Chromium y el worker `hwpos-print`) se instala de forma predeterminada. Puede omitirla con `WITH_PRINTING=no`. Consulte [Variables de configuración](/variables).
+  No es obligatorio publicar el servidor en internet: todo funciona en la red local. Publicarlo solo
+  hace falta para entrar desde fuera de la tienda, y en ese caso conviene añadir HTTPS (Let's
+  Encrypt), que los instaladores no configuran.
 </Note>
+
+## Privilegios
+
+Acceso `root` o un usuario con `sudo` en el servidor.
 
 ## Recomendación de seguridad al ejecutar scripts
 
-Varios comandos de esta guía descargan un script y lo ejecutan como `root` mediante `curl ... | sudo bash`. Es una forma habitual de instalar, pero si desea revisar el contenido antes de ejecutarlo puede descargarlo primero, leerlo y ejecutarlo después:
+Varios comandos de esta guía descargan un script y lo ejecutan como `root` mediante
+`curl ... | sudo bash`. Es una forma habitual de instalar, pero si desea revisar el contenido antes de
+ejecutarlo puede descargarlo primero, leerlo y ejecutarlo después:
 
 ```bash
 # 1. Descargar el script
@@ -36,5 +91,7 @@ sudo bash bootstrap.sh
 ```
 
 <Tip>
-  Los scripts son **idempotentes**: puede volver a ejecutarlos sin reinstalar innecesariamente los componentes que ya funcionan.
+  Los scripts son **idempotentes**: puede volver a ejecutarlos sin que se reinstale innecesariamente
+  lo que ya funciona, y sin perder datos. Reejecutar el instalador es la forma más rápida de arreglar
+  un servidor al que le cambiaron algo.
 </Tip>

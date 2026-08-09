@@ -1,0 +1,141 @@
+---
+title: "El asistente del navegador"
+description: "Los cinco pasos que terminan la instalación, campo por campo."
+icon: "wand-magic-sparkles"
+---
+
+Cuando el instalador termina, imprime la dirección para terminar en el navegador. Ábrala desde
+**cualquier equipo de la red**:
+
+```text
+http://IP-DEL-SERVIDOR/install
+```
+
+<Note>
+  Si eligió otro puerto, la dirección lo incluye: `http://IP-DEL-SERVIDOR:8080/install`.
+</Note>
+
+Son cinco pasos. El asistente no deja avanzar si algo obligatorio falta.
+
+## Paso 1. Bienvenida y comprobación del entorno
+
+Muestra los requisitos con ✓ / ✗.
+
+| Requisito | ¿Obligatorio? |
+| --- | --- |
+| PHP ≥ 8.2 | Sí |
+| PDO MySQL | Sí |
+| cURL | Sí |
+| mbstring | Sí |
+| `storage/` escribible | Sí |
+| GD | Recomendado |
+| Zip | Recomendado |
+
+<Warning>
+  Si **`storage/` escribible** sale en ✗, es un problema de permisos — o de **SELinux** en AlmaLinux,
+  Rocky y CentOS. Consulte [AlmaLinux, Rocky y CentOS](/almalinux).
+</Warning>
+
+## Paso 2. Base de datos
+
+| Campo | Qué poner |
+| --- | --- |
+| **Host** | `127.0.0.1` si la base de datos está en el mismo servidor; la IP del servidor de base de datos si está aparte. |
+| **Puerto** | `3306` |
+| **Base** | `hwd_pos` |
+| **Usuario** | `hwdpos_manager` |
+| **Contraseña** | La que generó el instalador. |
+| **Socket** | Déjelo vacío. Solo para casos especiales de conexión local. |
+
+La contraseña está en el archivo que dejó el instalador:
+
+```bash
+sudo cat /var/www/HWDPOS/deploy/DB-CREDENTIALS.txt
+```
+
+<Tip>
+  Use `127.0.0.1` y no `localhost`: con `localhost`, PHP intenta conectar por socket Unix y el error que
+  aparece es «No such file or directory», que no parece un problema de host.
+</Tip>
+
+El asistente **prueba la conexión** antes de continuar, y el mensaje distingue si el fallo es de
+credenciales o de red.
+
+## Paso 3. Datos de la empresa
+
+| Campo | Qué poner |
+| --- | --- |
+| **Nombre de la empresa** | Como debe salir en los documentos. Se puede cambiar después en **Ajustes**. |
+| **Símbolo de moneda** | `B/.` en Panamá. |
+| **ITBMS (%)** | El porcentaje **entero**: `7`. |
+| **Número inicial de operación** | Déjelo como está, salvo que continúe una numeración anterior. |
+
+## Paso 4. Usuario administrador
+
+Se crea el **super administrador**, que no se puede bloquear ni quedar sin permisos.
+
+| Campo | Recomendación |
+| --- | --- |
+| **Nombre completo** | La persona responsable, no «Admin». |
+| **Usuario** | Corto y sin espacios. |
+| **Contraseña** | Mínimo 8 caracteres. |
+
+<Warning>
+  **Anote la contraseña.** En este paso no hay recuperación por correo. Si se pierde, se restablece
+  desde el servidor con [`hwdpanel`](/hwdpanel).
+</Warning>
+
+## Paso 5. Activación
+
+| Campo | Qué poner |
+| --- | --- |
+| **Clave de activación** | La que entregó el proveedor. |
+| **Código de cliente** | El que entregó el proveedor. |
+
+El servidor sale a internet a validar la licencia y la **ata a esta máquina**. Al confirmar, el sistema
+crea la base de datos completa, aplica todas las actualizaciones de estructura y le lleva a la pantalla
+de entrada.
+
+<Warning>
+  **Este paso necesita internet.** Si el servidor no puede salir, la activación no se completa.
+  Compruébelo así:
+
+  ```bash
+  curl -sI https://3r.com.pa/pos | head -1
+  ```
+</Warning>
+
+## Comprobación funcional al terminar
+
+Antes de entregar el servidor a la tienda:
+
+<Steps>
+  <Step title="Entrar">
+    Inicie sesión con el usuario administrador.
+  </Step>
+  <Step title="Producto y existencia">
+    Cree un producto y déle existencia.
+  </Step>
+  <Step title="Venta completa">
+    Haga una cotización y cóbrela en Caja.
+  </Step>
+  <Step title="Impresión">
+    Imprima el documento. Con esto se prueban la cola, el servicio de impresión y la impresora.
+  </Step>
+  <Step title="Respaldo">
+    Cree un respaldo desde **Sistema → Sistema** y descárguelo a otra máquina.
+  </Step>
+</Steps>
+
+## Después de instalar
+
+En este orden:
+
+1. **Ajustes de la empresa**: logo, RUC, dirección, teléfonos y correo. El logo sale en los documentos A4.
+2. **Usuarios y roles**: una cuenta **por persona**, nunca compartida — la auditoría registra quién hizo cada cosa.
+3. **Impresoras**: añada cada una, elija el papel (térmica de 80 u 58 mm, o A4 documento) y **haga la prueba de impresión**.
+4. **Bodegas, categorías, proveedores y unidades**, antes de cargar productos.
+5. **Catálogo**: a mano o por importación de planilla.
+6. **Respaldos**: cree uno y **descárguelo a otra máquina**. Un respaldo que vive solo en el mismo servidor no protege de nada.
+7. **Correo** (opcional): configure el SMTP para enviar cotizaciones y facturas.
+8. **Complementos** (opcional): estado del servidor, ajustes de PHP, asistente de ayuda, correo al cliente.

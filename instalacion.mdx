@@ -1,39 +1,209 @@
 ---
 title: "Instalación por red"
-description: "Instale solo el entorno o el sistema completo con bootstrap.sh."
+description: "Instale HWD POS con un comando: modos, preguntas y resumen final."
 icon: "download"
 ---
 
-El script `bootstrap.sh` permite preparar únicamente el entorno o realizar una instalación completa.
+La instalación por red es la forma **recomendada**: siempre trae la versión más reciente de los
+scripts y un solo comando instala el servidor web, PHP, la base de datos, la impresión, los dos
+servicios de fondo, el cortafuegos y el panel de administración.
+
+<Info>
+  **Tiempo estimado:** 10 a 20 minutos en un servidor limpio con buena conexión.
+</Info>
+
+## Antes de empezar
+
+<Steps>
+  <Step title="Servidor limpio y admitido">
+    Uno de los sistemas de [Requisitos previos](/requisitos).
+  </Step>
+  <Step title="Acceso como root">
+    `root` o un usuario con `sudo`.
+  </Step>
+  <Step title="Internet desde el servidor">
+    Compruébelo con `ping -c2 3r.com.pa`.
+  </Step>
+  <Step title="Clave de activación">
+    La **clave de activación** y el **código de cliente** que entregó el proveedor.
+  </Step>
+</Steps>
+
+## Qué debe estar publicado en el servidor de distribución
+
+La instalación por red descarga los scripts de `https://3r.com.pa/hwdpos_inst/`. Deben estar
+publicados **los cuatro**:
+
+| Archivo | Para qué |
+| --- | --- |
+| `bootstrap.sh` | El punto de entrada. |
+| `install-ubuntu.sh` | El instalador de Ubuntu y Debian. |
+| `install-almalinux.sh` | El instalador de AlmaLinux, Rocky, RHEL y CentOS. |
+| `check.sh` | Diagnóstico y reparación. |
+
+<Note>
+  Si falta el instalador de una familia, `bootstrap.sh` lo dice y ofrece dos salidas: indicar la URL
+  del archivo con `INSTALLER_URL=…`, o copiarlo al servidor y ejecutarlo directamente.
+</Note>
+
+## El comando
+
+```bash
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo bash
+```
+
+El script detecta la familia del sistema (`apt` para Ubuntu y Debian; `dnf` para AlmaLinux, Rocky,
+RHEL y CentOS), **descarga el instalador que corresponde**, pregunta lo que necesita saber, instala
+todo y muestra un resumen con la dirección para terminar en el navegador.
+
+## Las preguntas
+
+Se hacen **todas al principio**, antes de instalar nada: no queremos preguntarle a los tres minutos,
+en medio de una descarga. En una instalación normal se aceptan las respuestas predeterminadas.
+
+### 1. Modo de instalación
+
+```text
+Modo de instalación:
+   1) Todo en uno  — servidor web + base de datos en ESTE servidor  (predeterminado)
+   2) Solo web     — servidor web + PHP; la base de datos está en OTRO servidor
+   3) Solo base de datos — únicamente MariaDB abierto a la red (sin web ni PHP)
+Opción [1/2/3]:
+```
+
+| Opción | Cuándo usarla |
+| --- | --- |
+| **1) Todo en uno** | **Lo normal**: un servidor para la tienda. Pulse Intro. |
+| **2) Solo web** | La base de datos ya está en otra máquina. Le pedirá su IP. |
+| **3) Solo base de datos** | Está preparando la máquina de la base de datos. Le pedirá desde qué IP se autoriza al servidor web. |
+
+### 2. Puerto del sitio web
+
+```text
+Puerto [80]:
+```
+
+Pulse Intro para `80`. Consulte [Puerto del sitio](/puerto) si necesita otro.
+
+### 3. Nada más
+
+El instalador genera solo la contraseña de la base de datos y la guarda en
+`deploy/DB-CREDENTIALS.txt`, legible únicamente por `root`.
+
+## El resumen final
+
+Al terminar aparece un resumen con ✓ / ✗. En AlmaLinux se añaden tres líneas de SELinux.
+
+```text
+==================== RESUMEN DE INSTALACIÓN (all) ====================
+  ✓ Apache (activo)
+  ✓ PHP 8.3-FPM (activo)
+  ✓ PHP: pdo_mysql
+  ✓ PHP: mbstring
+  ✓ PHP: curl
+  ✓ PHP: zip
+  ✓ PHP: gd
+  ✓ PHP: opcache
+  ✓ PHP: sodium (recomendado; hay polyfill)
+  ✓ CUPS (impresión A4/IP)
+  ✓ Chromium (PDF de documentos A4)
+  ✓ Worker de impresión (hwpos-print)
+  ✓ Worker de plugins (hwpos-plugins)
+  ✓ MariaDB (activo)
+  ✓ Base de datos 'hwd_pos' creada
+  ✓ Código del sistema en /var/www/HWDPOS
+  ✓ Panel de administración (hwdpanel)
+  ✓ Puerto 80 escuchando
+
+  IP interna (LAN):  192.168.1.50
+=======================================================================
+
+Termine la instalación en el navegador (desde cualquier equipo de la red):
+   http://192.168.1.50/install
+```
+
+<Warning>
+  **Léalo antes de seguir.** Un ✗ en `sodium` o en `Chromium` no impide continuar; uno en `pdo_mysql`,
+  `MariaDB` o el puerto sí. Cada caso está en [Solución de problemas](/solucion-problemas).
+</Warning>
+
+Continúe con [El asistente del navegador](/asistente).
+
+## Variantes del comando
 
 <Tabs>
+  <Tab title="Puerto distinto">
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo WEB_PORT=8080 bash
+    ```
+  </Tab>
+  <Tab title="Sin impresión">
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo WITH_PRINTING=no bash
+    ```
+  </Tab>
+  <Tab title="Con dominio propio">
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo DOMAIN=pos.miferreteria.com bash
+    ```
+  </Tab>
   <Tab title="Solo el entorno">
-    Instala las dependencias y los servicios necesarios, pero **no** instala el código de HWD POS.
+    Instala las dependencias y los servicios, pero **no** el código de HWD POS.
 
     ```bash
     curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo ENV_ONLY=1 bash
     ```
   </Tab>
-  <Tab title="Con un paquete específico">
-    Indique la ruta local del archivo `.zip` en el servidor o una URL desde la que pueda descargarse.
+  <Tab title="Desde un paquete">
+    Indique la ruta local del `.zip` en el servidor o una URL desde la que pueda descargarse.
 
     ```bash
     curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo HWPOS_ZIP=/root/HWDPOS-v1.5.0.zip bash
     ```
   </Tab>
-  <Tab title="Automática">
-    Ejecuta la instalación completa utilizando la configuración predeterminada.
-
-    ```bash
-    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo bash
-    ```
-  </Tab>
 </Tabs>
 
-<Note>
-  Puede anteponer variables de configuración a cualquier comando de instalación, por ejemplo `DOMAIN`, `PHP_VER` o `WITH_PRINTING`. Consulte [Variables de configuración](/variables).
-</Note>
+Puede combinar varias variables en el mismo comando. Consulte
+[Variables de configuración](/variables).
 
-## Comprobar el resultado
+## Base de datos en un servidor aparte
 
-Al finalizar, el script muestra un resumen. Si no aparece, el proceso se detuvo antes de terminar; revise el mensaje de error y vuelva a ejecutarlo (los scripts son idempotentes). Consulte también [Diagnóstico y reparación](/diagnostico) para verificar el estado de cada componente.
+Se instalan **dos** servidores, en este orden.
+
+<Steps>
+  <Step title="Primero, la máquina de la base de datos">
+    En `10.0.0.5`, autorizando solo al servidor web:
+
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo MODE=db DB_ALLOW=10.0.0.4 bash
+    ```
+
+    Anote los datos que imprime al terminar. También quedan en `deploy/DB-CREDENTIALS.txt`.
+  </Step>
+  <Step title="Después, el servidor web">
+    En `10.0.0.4`, apuntando al anterior:
+
+    ```bash
+    curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo MODE=web DB_HOST=10.0.0.5 bash
+    ```
+  </Step>
+  <Step title="En el asistente, use los datos del primer servidor">
+    En el paso **Base de datos**, el host es la IP del servidor de base de datos, y el usuario y la
+    contraseña son los que se crearon allí.
+  </Step>
+</Steps>
+
+## Instalar sin internet en el servidor
+
+Copie el `.zip` al servidor y ejecute el instalador de su familia. Los scripts de instalación **no
+viajan dentro del paquete**: descárguelos aparte y déjelos junto al código.
+
+```bash
+cd /var/www && sudo unzip -q /root/HWDPOS-v1.5.0.zip      # crea /var/www/HWDPOS
+sudo bash /var/www/HWDPOS/deploy/install-ubuntu.sh        # Ubuntu / Debian
+sudo bash /var/www/HWDPOS/deploy/install-almalinux.sh     # AlmaLinux / Rocky / RHEL
+```
+
+<Warning>
+  **La activación sí necesita internet**, aunque el código venga en un `.zip`.
+</Warning>

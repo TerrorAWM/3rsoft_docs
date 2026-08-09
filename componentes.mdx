@@ -1,0 +1,109 @@
+---
+title: "Componentes del sistema"
+description: "Qué instala HWD POS, para qué sirve cada pieza y qué deja de funcionar si falta."
+icon: "puzzle-piece"
+---
+
+HWD POS es un sistema **PHP nativo**: no usa framework, ni Composer, ni Node, ni Docker. Eso reduce la
+instalación a tres piezas obligatorias y tres opcionales.
+
+## Piezas obligatorias
+
+| Pieza | Versión | Para qué sirve en HWD POS |
+| --- | --- | --- |
+| **PHP** | **8.2 o superior** | Es el sistema en sí. Se instalan **dos** formas del mismo PHP: **FPM**, que atiende las páginas que abre el navegador, y **CLI**, que ejecuta los servicios de fondo y las tareas de mantenimiento. |
+| **MariaDB** | **10.4 o superior** (o MySQL 8) | Guarda todo: productos, existencias, clientes, cotizaciones, facturas, caja, créditos y auditoría. |
+| **Servidor web** | **Apache 2.4** o **Nginx 1.18+** | Recibe las visitas y le pasa a PHP-FPM lo que es del sistema. |
+
+<Warning>
+  **Por qué MariaDB 10.4 y no MySQL 5.x.** Las actualizaciones del sistema usan
+  `ADD COLUMN IF NOT EXISTS`, que MySQL 5.x no entiende. Por debajo de 10.4 las actualizaciones fallan
+  a medias y dejan la base de datos en un estado intermedio.
+</Warning>
+
+<Warning>
+  **El *document root* debe apuntar a `public/`, nunca a la raíz del proyecto.** Dentro del proyecto
+  están la configuración con la contraseña de la base de datos, los respaldos y el código. Con el
+  *document root* en `public/`, nada de eso es alcanzable desde la red aunque alguien adivine el
+  nombre del archivo. Los instaladores lo configuran así y además bloquean `.env`, `.sql`, `.md`,
+  `.sh` y `.lock`.
+</Warning>
+
+<Note>
+  Los instaladores usan el servidor web que **ya esté instalado** (Apache tiene prioridad si están los
+  dos). Si no hay ninguno, instalan **Apache**.
+</Note>
+
+## Extensiones de PHP
+
+Los instaladores instalan todas. El asistente del navegador las vuelve a comprobar y las muestra con
+✓ / ✗ antes de dejar continuar.
+
+| Extensión | ¿Obligatoria? | Qué deja de funcionar sin ella |
+| --- | --- | --- |
+| **pdo_mysql** | Sí | Nada funciona: es la conexión con la base de datos. |
+| **mbstring** | Sí | El texto con acentos y con ñ se corta o se corrompe (nombres de clientes y productos, búsquedas). |
+| **curl** | Sí | Todo lo que sale a internet: **activación de la licencia**, comprobación de actualizaciones, facturación fiscal, Yappy, correo por SMTP y el asistente de ayuda. |
+| **zip** | Recomendada | Instalar y actualizar **complementos**, aplicar **actualizaciones** del sistema, importar clientes y productos desde planilla, y exportar a Excel. |
+| **gd** | Recomendada | La **marca de agua** del documento A4 y la **firma** del cliente en la entrega. |
+| **xml** | Recomendada | Leer las planillas de **importación** de clientes y productos. |
+| **opcache** | Recomendada | Nada deja de funcionar, pero el sistema va notablemente más lento: cada página se vuelve a compilar en cada visita. |
+| **sodium** | Recomendada | Verifica la firma de la licencia. Si falta, se usa el respaldo incluido en `vendor/sodium_compat/`: funciona igual, solo más lento. |
+| **pcntl** (solo en CLI) | Recomendada | Los servicios de fondo no pueden recoger código nuevo por su cuenta tras una actualización; hay que reiniciarlos a mano. |
+
+<Note>
+  En **AlmaLinux, Rocky y RHEL** los paquetes no llevan versión en el nombre y `pdo_mysql` viene dentro
+  de **`php-mysqlnd`** (no existe `php-mysql`). El diagnóstico lo tiene en cuenta.
+</Note>
+
+## Piezas opcionales
+
+<CardGroup cols={3}>
+  <Card title="CUPS" icon="print">
+    Imprimir en impresoras **A4** (inyección o láser) y en impresoras **de red por IPP/AirPrint**.
+
+    Sin CUPS, las impresoras **térmicas** (ESC/POS, 80 mm y 58 mm) siguen funcionando: no pasan por él.
+  </Card>
+
+  <Card title="Chromium" icon="file-pdf">
+    Convertir a PDF el **documento A4 completo** (la factura y la cotización con su diseño).
+
+    Sin Chromium, la impresión de tipo «recibo» sigue funcionando; el documento A4 diseñado no se puede
+    generar.
+  </Card>
+
+  <Card title="Typesense" icon="magnifying-glass">
+    Buscador tolerante a erratas en todas las búsquedas.
+
+    Sin Typesense se usa la búsqueda por SQL, que es la de siempre. No hace falta configurarlo.
+  </Card>
+</CardGroup>
+
+Con `WITH_PRINTING=no` el instalador omite CUPS y Chromium. Es lo indicado en un servidor que no
+imprime, por ejemplo uno que solo sirve la base de datos.
+
+## Servicios de fondo
+
+El instalador deja **dos** servicios de systemd. Los dos deben quedar **activos** y **habilitados**
+(arranque automático); el resumen final del instalador lo verifica.
+
+| Servicio | Qué hace | Comprobar |
+| --- | --- | --- |
+| **`hwpos-print`** | Imprime, uno por uno, los documentos que el sistema pone en cola. | `systemctl status hwpos-print` |
+| **`hwpos-plugins`** | Ejecuta el trabajo en segundo plano de los complementos. Por ejemplo, enviar el correo al cliente **en el servidor**, sin que el vendedor espere. | `systemctl status hwpos-plugins` |
+
+<Tip>
+  Si alguno falta o quedó detenido, se reinstalan con `hwdpanel` (opción 16) y se reinician con la
+  opción 17. Consulte [Panel de administración](/hwdpanel).
+</Tip>
+
+## Nombres que cambian según el sistema
+
+| Concepto | Ubuntu / Debian | AlmaLinux / Rocky / RHEL |
+| --- | --- | --- |
+| Servicio de Apache | `apache2` | `httpd` |
+| Servicio de PHP-FPM | `php8.3-fpm` | `php-fpm` |
+| Usuario del servidor web | `www-data` | `apache` |
+| Configuración del sitio | `/etc/apache2/sites-available/hwpos.conf` | `/etc/httpd/conf.d/hwpos.conf` |
+| Ajustes de MariaDB | `/etc/mysql/mariadb.conf.d/99-hwdpos.cnf` | `/etc/my.cnf.d/99-hwdpos.cnf` |
+| Cortafuegos | `ufw` | `firewalld` |

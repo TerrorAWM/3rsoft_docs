@@ -4,9 +4,8 @@ description: "Revise e instale los componentes de HWD POS con check.sh."
 icon: "stethoscope"
 ---
 
-El script `check.sh` revisa el estado de los componentes principales de HWD POS y permite instalar o reparar los que estén ausentes o mal configurados.
-
-Puede ejecutarse desde la copia local incluida en HWD POS o directamente desde la red.
+El script `check.sh` revisa el estado de los componentes de HWD POS y permite instalar o reparar los
+que estén ausentes o mal configurados. Funciona en **las dos familias de sistema**.
 
 ## Ejecutar el diagnóstico
 
@@ -19,7 +18,7 @@ Puede ejecutarse desde la copia local incluida en HWD POS o directamente desde l
     ```
   </Tab>
   <Tab title="Desde la red">
-    No es necesario descargar el archivo manualmente. Este comando descarga y ejecuta la versión publicada en el servidor de HWD POS.
+    Descarga y ejecuta la versión publicada en el servidor de HWD POS.
 
     ```bash
     curl -fsSL https://3r.com.pa/hwdpos_inst/check.sh | sudo bash
@@ -45,23 +44,45 @@ curl -fsSL https://3r.com.pa/hwdpos_inst/check.sh | sudo CHECK_ONLY=1 bash
 
 ## Componentes revisados
 
-El diagnóstico revisa o instala los siguientes componentes:
+| Componente | Qué comprueba |
+| --- | --- |
+| PHP y sus extensiones | Contra la versión de PHP-FPM **realmente en uso**, no contra el `php` del terminal. |
+| MariaDB | Que esté instalado y activo. |
+| Servidor web | Apache (`apache2` o `httpd`) o Nginx. |
+| Configuración del sitio | El archivo `hwpos.conf`, en cualquiera de las cuatro rutas posibles. |
+| Base de datos de HWD POS | Que exista. |
+| CUPS y Chromium | Para la impresión A4. |
+| `hwpos-print` y `hwpos-plugins` | Los dos servicios de fondo. |
+| `hwdpanel` | El panel local. |
+| Código del sistema | Que esté en su carpeta. |
+| **Puerto del sitio** | El puerto que **está configurado**, leído del propio archivo del sitio. |
 
-- PHP y sus extensiones.
-- La versión real de PHP-FPM en uso.
-- MariaDB.
-- Nginx y la configuración del sitio.
-- La base de datos de HWD POS.
-- CUPS.
-- Chromium.
-- El worker de impresión `hwpos-print`.
-- El panel local `hwdpanel`.
-- El código de HWD POS.
-- El puerto 80.
+<Note>
+  El puerto no se supone: si su sitio está en el 8080, la línea dirá `Puerto 8080 escuchando`. Antes
+  daba un ✗ falso en cualquier sitio que no usara el 80.
+</Note>
+
+## Cómo repara según el sistema
+
+<Tabs>
+  <Tab title="Ubuntu / Debian">
+    Consulta los paquetes con `dpkg` (nombres con versión, como `php8.3-fpm`) e instala con `apt`
+    directamente desde el menú.
+  </Tab>
+  <Tab title="AlmaLinux / Rocky / RHEL">
+    Consulta los paquetes con `rpm` (nombres sin versión, y `pdo_mysql` dentro de `php-mysqlnd`) y
+    **repara ejecutando `install-almalinux.sh`**, que además deja SELinux y el cortafuegos en su sitio.
+
+    Si el instalador no está en el servidor, `check.sh` lo descarga; si tampoco puede, dice qué falta.
+  </Tab>
+</Tabs>
+
+<Warning>
+  Si el sistema no usa `apt` ni `dnf`, `check.sh` muestra el diagnóstico pero no instala nada: lo dice
+  en lugar de intentarlo y fallar.
+</Warning>
 
 ## Menú de reparación
-
-En el menú interactivo:
 
 | Opción | Acción |
 | --- | --- |
@@ -69,3 +90,8 @@ En el menú interactivo:
 | **T** | Instala o repara todo lo que falte. |
 | **U** | Actualiza el panel `hwdpanel`. |
 | **S** | Sale del menú. |
+
+<Tip>
+  El menú solo ofrece lo que corresponde al modo del servidor: en un servidor de solo base de datos no
+  ofrece componentes web, y al contrario.
+</Tip>

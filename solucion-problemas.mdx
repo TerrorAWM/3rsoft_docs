@@ -4,6 +4,95 @@ description: "Errores frecuentes durante la instalación y su solución."
 icon: "circle-question"
 ---
 
+## En Rocky, Alma o CentOS: `bootstrap.sh` se corta enseguida
+
+Si el script termina de inmediato con un error parecido a `apt-get: command not found`, está usando una
+**versión anterior** del script: llamaba a `apt-get`, que en esa familia no existe.
+
+```bash
+# Vuelva a descargarlo y ejecútelo
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo bash
+```
+
+Si el servidor de distribución todavía no tiene el instalador de esa familia, hay dos salidas:
+
+```bash
+# 1. Indicar la URL del instalador
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | \
+  sudo INSTALLER_URL=https://…/install-almalinux.sh bash
+
+# 2. Copiarlo al servidor y ejecutarlo directamente
+sudo bash /ruta/install-almalinux.sh
+```
+
+## En Rocky, Alma o CentOS: `check.sh` marca ✗ en todo
+
+Una versión anterior consultaba los paquetes con `dpkg`, que en esa familia no existe, así que todo
+aparecía como ausente aunque estuviera instalado. Vuelva a descargarlo: la versión actual consulta con
+`rpm` y repara ejecutando `install-almalinux.sh`.
+
+## En AlmaLinux todo parece bien, pero no guarda nada
+
+El sistema entra, pero no puede escribir, ni actualizarse, ni enviar correo, ni validar la licencia — y
+ningún error menciona la causa. Es **SELinux**.
+
+```bash
+# Confirmarlo
+sudo ausearch -m avc -ts recent
+
+# Resolverlo (aplica contextos y permisos, y no borra datos)
+sudo bash /var/www/HWDPOS/deploy/install-almalinux.sh
+```
+
+Consulte [AlmaLinux, Rocky y CentOS](/almalinux).
+
+## El navegador no abre nada
+
+```bash
+# ¿Está escuchando el puerto del sitio? (cambie 80 por el suyo)
+sudo ss -ltn | grep :80
+
+# ¿Está el servidor web activo?
+sudo systemctl status apache2      # httpd en AlmaLinux; nginx si usa Nginx
+```
+
+Si el puerto no aparece, revise que el servidor tenga su `Listen`. Consulte
+[Puerto del sitio](/puerto).
+
+## Se descarga el archivo PHP en vez de mostrar la página
+
+El servidor web no está pasando PHP a PHP-FPM. Reejecute el instalador de su familia: deja la
+configuración correcta.
+
+## No se puede conectar a la base de datos
+
+| Mensaje | Causa | Solución |
+| --- | --- | --- |
+| `No such file or directory` | Host `localhost`, que fuerza el socket Unix | Use `127.0.0.1` en el asistente. |
+| `Access denied for user` | Contraseña equivocada | `sudo cat /var/www/HWDPOS/deploy/DB-CREDENTIALS.txt` |
+| `Too many connections` | Cupo de la base de datos lleno | **Sistema → Capacidad de conexiones**, o `hwdpanel` opción 19. |
+
+## La activación no se completa
+
+El servidor necesita salida a internet en ese paso.
+
+```bash
+curl -sI https://3r.com.pa/pos | head -1
+```
+
+## No imprime nada
+
+```bash
+sudo systemctl status hwpos-print
+```
+
+Si no está corriendo, se reinstalan los dos servicios con `hwdpanel` opción **16** y se reinician con la
+**17**.
+
+## Imprime el recibo pero no el documento A4
+
+Falta Chromium, o la impresora A4 está configurada como térmica. Consulte [Impresión](/impresion).
+
 ## `apt-get update` falla por un cambio de repositorio
 
 Mensaje habitual:
@@ -38,13 +127,17 @@ Esto significa que el proceso se detuvo antes de finalizar. Revise el mensaje de
 
 ## Una extensión de PHP aparece como ausente aunque está instalada
 
-Los scripts detectan la versión real de PHP-FPM y comprueban los paquetes mediante:
+Los scripts detectan la versión real de PHP-FPM y comprueban los paquetes con el gestor de cada
+familia, no con el `php` del terminal:
 
 ```bash
-dpkg -s phpX.Y-<extension>
+dpkg -s phpX.Y-<extension>     # Ubuntu / Debian
+rpm -q php-<extension>         # AlmaLinux / Rocky / RHEL
 ```
 
-La comprobación no depende de la versión de `php` configurada en el terminal.
+<Note>
+  En AlmaLinux, `pdo_mysql` viene dentro de **`php-mysqlnd`**: no existe un paquete `php-mysql`.
+</Note>
 
 ## Se olvidó la contraseña del administrador
 

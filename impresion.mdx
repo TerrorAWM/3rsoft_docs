@@ -4,7 +4,9 @@ description: "Configure CUPS, Chromium y el worker hwpos-print."
 icon: "print"
 ---
 
-La impresión se instala de forma predeterminada cuando `WITH_PRINTING=yes`. El servicio `hwpos-print` procesa la cola de impresión y envía los trabajos uno por uno.
+La impresión se instala de forma predeterminada cuando `WITH_PRINTING=yes`. El servicio `hwpos-print`
+procesa la cola de impresión y envía los trabajos **uno por uno**, de modo que dos documentos no se
+mezclan en la misma impresora.
 
 ## Estado y actividad del servicio
 
@@ -24,7 +26,8 @@ También puede consultar o controlar el servicio desde [`hwdpanel`](/hwdpanel).
 
 ## Permisos del usuario del servicio
 
-El usuario `www-data` debe pertenecer a los siguientes grupos:
+El usuario del servidor web —`www-data` en Ubuntu y Debian, **`apache`** en AlmaLinux, Rocky y RHEL—
+debe pertenecer a los siguientes grupos:
 
 - `lp`, para acceder a impresoras USB.
 - `lpadmin`, para administrar colas IPP.
@@ -38,8 +41,9 @@ El usuario `www-data` debe pertenecer a los siguientes grupos:
 Si la generación o impresión de documentos PDF A4 falla:
 
 <Steps>
-  <Step title="Instale Google Chrome">
-    Instale `google-chrome-stable` mediante su paquete `.deb`.
+  <Step title="Instale Chromium o Google Chrome">
+    En Ubuntu y Debian: `sudo apt install -y chromium-browser`, o `google-chrome-stable` desde su
+    paquete `.deb`. En AlmaLinux, Rocky y RHEL: `sudo dnf install -y chromium` (necesita EPEL).
   </Step>
   <Step title="Abra los Ajustes de HWD POS">
     Vaya a **Ajustes** en la interfaz de HWD POS.

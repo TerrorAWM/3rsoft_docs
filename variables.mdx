@@ -4,22 +4,71 @@ description: "Variables que puede anteponer a los comandos de instalación."
 icon: "gear"
 ---
 
-Las variables pueden colocarse antes de cualquier comando de instalación.
-
-| Variable | Valor predeterminado | Descripción |
-| --- | --- | --- |
-| `DOMAIN` | `_` | Valor de `server_name` en Nginx. Ejemplo: `pos.tienda.com`. |
-| `PHP_VER` | `8.3` | Versión de PHP. Valores compatibles: `8.2` y `8.3`. |
-| `WITH_PRINTING` | `yes` | Use `no` para omitir CUPS, Chromium y el worker de impresión. |
-| `ENV_ONLY` | `no` | Use `yes` o `1` para instalar solamente el entorno, sin el código de HWD POS. |
-| `APP_DIR` | `/var/www/HWDPOS` | Directorio de instalación del código. |
-| `DB_NAME` | `hwd_pos` | Nombre de la base de datos. |
-| `DB_USER` | `hwdpos_manager` | Usuario de la base de datos. |
-| `HWPOS_ZIP` | Sin valor | Ruta local o URL del archivo `.zip` utilizado por `bootstrap.sh`. |
-| `HWPOS_BASE_URL` | `https://3r.com.pa/hwdpos_inst` | Dirección desde la que se descargan `bootstrap.sh`, `check.sh`, el panel y otros archivos de instalación. |
-
-## Ejemplo de instalación personalizada
+Las variables se colocan antes de cualquier comando de instalación. Se pueden combinar varias.
 
 ```bash
-sudo DOMAIN=pos.tienda.com PHP_VER=8.3 WITH_PRINTING=no bash /var/www/HWDPOS/deploy/install-ubuntu.sh
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo WEB_PORT=8080 DOMAIN=pos.tienda.com bash
 ```
+
+## Sitio y servidor web
+
+| Variable | Predeterminado | Descripción |
+| --- | --- | --- |
+| `WEB_PORT` | *se pregunta* (`80` sin terminal) | Puerto del sitio. Consulte [Puerto del sitio](/puerto). Se rechazan 22, 3306 y 8108. |
+| `DOMAIN` | `_` | `ServerName` de Apache o `server_name` de Nginx. Ejemplo: `pos.tienda.com`. |
+| `PHP_VER` | `8.3` en Ubuntu y Debian; `8.2` en AlmaLinux y derivados | Versión de PHP. En la familia RPM es el módulo de `dnf`; si el sistema no la ofrece, el instalador usa Remi. |
+| `APP_DIR` | `/var/www/HWDPOS` | Carpeta del código. |
+| `WITH_PRINTING` | `yes` | Use `no` para omitir CUPS, Chromium y los servicios de impresión. |
+| `ENV_ONLY` | `no` | Use `yes` o `1` para instalar solamente el entorno, sin el código de HWD POS. |
+
+## Modo de instalación y base de datos
+
+| Variable | Predeterminado | Descripción |
+| --- | --- | --- |
+| `MODE` | *se pregunta* (`all` sin terminal) | `all` todo en uno · `web` solo servidor web · `db` solo base de datos. |
+| `DB_HOST` | Sin valor | (`MODE=web`) IP o host del servidor de base de datos remoto. |
+| `DB_ALLOW` | `%` | (`MODE=db`) IP del servidor web autorizado. Con `%` se autoriza cualquier IP. |
+| `DB_BIND` | `0.0.0.0` | (`MODE=db`) Dirección en la que escucha MariaDB. |
+| `DB_NAME` | `hwd_pos` | Nombre de la base de datos. |
+| `DB_USER` | `hwdpos_manager` | Usuario de la base de datos. |
+| `DB_PASS` | *se genera* | Contraseña. Si no se indica, el instalador genera una y la guarda en `deploy/DB-CREDENTIALS.txt`. |
+
+## Origen de los scripts y del paquete
+
+| Variable | Predeterminado | Descripción |
+| --- | --- | --- |
+| `HWPOS_BASE_URL` | `https://3r.com.pa/hwdpos_inst` | Dirección desde la que se descargan `bootstrap.sh`, los instaladores, `check.sh` y el panel. |
+| `HWPOS_ZIP` | Sin valor | Ruta local o URL del `.zip` de HWD POS que debe instalar `bootstrap.sh`. |
+| `INSTALLER_URL` | Sin valor | URL completa del instalador. Útil si el archivo de su familia todavía no está publicado en `HWPOS_BASE_URL`. |
+
+## Diagnóstico
+
+| Variable | Predeterminado | Descripción |
+| --- | --- | --- |
+| `CHECK_ONLY` | Sin valor | Con `1`, `check.sh` muestra solo el informe y no abre el menú de reparación. |
+
+## Ejemplos
+
+<CodeGroup>
+
+```bash Instalación personalizada
+sudo DOMAIN=pos.tienda.com WEB_PORT=8080 WITH_PRINTING=no \
+  bash /var/www/HWDPOS/deploy/install-ubuntu.sh
+```
+
+```bash Servidor de base de datos
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | \
+  sudo MODE=db DB_ALLOW=10.0.0.4 bash
+```
+
+```bash Servidor web con base remota
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | \
+  sudo MODE=web DB_HOST=10.0.0.5 bash
+```
+
+```bash Instalador desde una URL concreta
+curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | \
+  sudo INSTALLER_URL=https://ejemplo.com/install-almalinux.sh bash
+```
+
+</CodeGroup>

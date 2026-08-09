@@ -4,23 +4,26 @@ description: "Instalación, diagnóstico, administración y actualización de HW
 icon: "house"
 ---
 
-Bienvenido a la documentación de **HWD POS**. Aquí encontrará cómo instalar el sistema por red, diagnosticar y reparar sus componentes, administrarlo con `hwdpanel`, configurar la impresión y actualizar una instalación existente.
+Bienvenido a la documentación de **HWD POS**. Aquí encontrará cómo instalar el sistema por red en
+Ubuntu o en AlmaLinux, diagnosticar y reparar sus componentes, administrarlo con `hwdpanel`, configurar
+la impresión y actualizar una instalación existente.
 
 ## ¿Qué incluye HWD POS?
 
-HWD POS se despliega sobre Ubuntu e integra los siguientes componentes:
+HWD POS es un sistema **PHP nativo**: no usa framework, ni Composer, ni Node, ni Docker.
 
 <CardGroup cols={2}>
   <Card title="Servidor web" icon="server">
-    Nginx y PHP-FPM (PHP 8.2 u 8.3) sirven la aplicación.
+    Apache o Nginx con PHP-FPM (PHP 8.2 o superior) sirven la aplicación. Se usa el que ya esté
+    instalado; si no hay ninguno, se instala Apache.
   </Card>
 
   <Card title="Base de datos" icon="database">
-    MariaDB almacena la información del punto de venta.
+    MariaDB 10.4 o superior almacena la información del punto de venta.
   </Card>
 
   <Card title="Impresión" icon="print">
-    CUPS, Chromium y el worker `hwpos-print` gestionan la cola de impresión.
+    CUPS, Chromium y el servicio `hwpos-print` gestionan la cola de impresión.
   </Card>
 
   <Card title="Administración" icon="terminal">
@@ -30,25 +33,45 @@ HWD POS se despliega sobre Ubuntu e integra los siguientes componentes:
 
 ## Instalación rápida
 
-Instalación completa con la configuración predeterminada:
+Un solo comando, en Ubuntu o en AlmaLinux: el script detecta el sistema y usa el instalador que
+corresponde.
 
 ```bash
 curl -fsSL https://3r.com.pa/hwdpos_inst/bootstrap.sh | sudo bash
 ```
 
+Durante la instalación se pregunta el **modo** (todo en uno, solo web o solo base de datos) y el
+**puerto** del sitio, que es `80` si no indica otro.
+
 <Note>
-  Antes de empezar, revise los [requisitos previos](/requisitos). Si prefiere auditar el script antes de ejecutarlo como root, consulte la [recomendación de seguridad](/requisitos#recomendación-de-seguridad-al-ejecutar-scripts).
+  Antes de empezar, revise los [requisitos previos](/requisitos). Si prefiere auditar el script antes de
+  ejecutarlo como root, consulte la
+  [recomendación de seguridad](/requisitos#recomendación-de-seguridad-al-ejecutar-scripts).
 </Note>
+
+<Warning>
+  Si instala sobre **AlmaLinux, Rocky, RHEL o CentOS**, lea antes
+  [AlmaLinux, Rocky y CentOS](/almalinux): SELinux está activo de fábrica y es el paso que decide si la
+  instalación funciona de verdad.
+</Warning>
 
 ## Continúe por aquí
 
 <CardGroup cols={2}>
   <Card title="Requisitos previos" icon="list-check" href="/requisitos">
-    Sistema operativo, PHP, puertos y permisos necesarios.
+    Sistemas admitidos, hardware, red y permisos.
+  </Card>
+
+  <Card title="Componentes del sistema" icon="puzzle-piece" href="/componentes">
+    Qué hace cada pieza y qué deja de funcionar si falta.
   </Card>
 
   <Card title="Instalación por red" icon="download" href="/instalacion">
-    Instale solo el entorno o el sistema completo con `bootstrap.sh`.
+    El comando, las preguntas y el resumen final.
+  </Card>
+
+  <Card title="El asistente del navegador" icon="wand-magic-sparkles" href="/asistente">
+    Los cinco pasos que terminan la instalación.
   </Card>
 
   <Card title="Diagnóstico y reparación" icon="stethoscope" href="/diagnostico">

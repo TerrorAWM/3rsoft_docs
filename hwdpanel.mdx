@@ -16,14 +16,27 @@ sudo hwdpanel
 
 ## Funciones disponibles
 
-- Reiniciar, iniciar o detener Nginx y PHP-FPM.
-- Reiniciar, iniciar o detener el worker de impresión `hwpos-print`.
+- Ver el estado de los servicios, y reiniciarlos, iniciarlos o detenerlos: el servidor web
+  (`apache2` o `httpd`, o `nginx`), PHP-FPM y los **dos** servicios de fondo.
 - Restablecer la contraseña de cualquier usuario o administrador.
-- Consultar las credenciales de la base de datos.
-- Consultar las variables del entorno.
+- Consultar las credenciales de la base de datos y las variables del entorno.
 - Ejecutar el diagnóstico `check.sh`.
 - Mostrar la dirección IP y la URL de acceso.
 - Actualizar el propio panel desde la red.
+
+### Opciones para los servicios y la capacidad
+
+| Opción | Acción |
+| --- | --- |
+| **16** | Instalar o reinstalar los dos servicios de fondo (impresión y complementos). |
+| **17** | Reiniciar **todo**: sitio, PHP y los dos servicios. |
+| **18** | Ver el registro de los dos servicios de fondo. |
+| **19** | Capacidad: cupo de conexiones de la base de datos y procesos de PHP, con los valores aconsejados para esa máquina. |
+
+<Note>
+  El panel reconoce el sistema: usa `httpd` y `php-fpm` en AlmaLinux, Rocky y RHEL, y `apache2` y
+  `phpX.Y-fpm` en Ubuntu y Debian, con las rutas de configuración de cada familia.
+</Note>
 
 ## Restablecer la contraseña de un administrador
 

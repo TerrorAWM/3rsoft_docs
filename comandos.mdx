@@ -8,31 +8,48 @@ Resumen de los comandos más utilizados para operar y mantener un servidor HWD P
 
 ## Gestión de servicios
 
-```bash
+Los nombres de los servicios cambian según el sistema.
+
+<CodeGroup>
+
+```bash Ubuntu / Debian
 # Estado
-sudo systemctl status nginx
-sudo systemctl status php8.3-fpm
-sudo systemctl status hwpos-print
+sudo systemctl status apache2 php8.3-fpm hwpos-print hwpos-plugins
 
 # Reiniciar
-sudo systemctl restart nginx
-sudo systemctl restart php8.3-fpm
-sudo systemctl restart hwpos-print
+sudo systemctl restart apache2 php8.3-fpm hwpos-print hwpos-plugins
 ```
 
+```bash AlmaLinux / Rocky / RHEL
+# Estado
+sudo systemctl status httpd php-fpm hwpos-print hwpos-plugins
+
+# Reiniciar
+sudo systemctl restart httpd php-fpm hwpos-print hwpos-plugins
+```
+
+</CodeGroup>
+
 <Note>
-  Sustituya `php8.3-fpm` por la versión de PHP-FPM realmente instalada (por ejemplo `php8.2-fpm`). El diagnóstico [`check.sh`](/diagnostico) detecta la versión real en uso. También puede iniciar, detener o reiniciar estos servicios desde [`hwdpanel`](/hwdpanel).
+  En Ubuntu, sustituya `php8.3-fpm` por la versión realmente instalada; en AlmaLinux el servicio es
+  `php-fpm`, sin versión. Si usa Nginx en lugar de Apache, cambie `apache2` o `httpd` por `nginx`. El
+  diagnóstico [`check.sh`](/diagnostico) detecta lo que corresponde. También puede reiniciarlos todos
+  desde [`hwdpanel`](/hwdpanel) con la opción 17.
 </Note>
 
 ## Registros (logs)
 
 ```bash
-# Actividad del worker de impresión en tiempo real
-sudo journalctl -u hwpos-print -f
+# Actividad de los dos servicios de fondo en tiempo real
+sudo journalctl -u hwpos-print -u hwpos-plugins -f
 
 # Últimas entradas de un servicio
-sudo journalctl -u nginx -n 100 --no-pager
+sudo journalctl -u apache2 -n 100 --no-pager      # httpd en AlmaLinux
 ```
+
+<Tip>
+  `hwdpanel` opción **18** muestra las últimas entradas de los dos servicios de fondo juntas.
+</Tip>
 
 ## Respaldo y restauración de la base de datos
 
@@ -66,9 +83,17 @@ sudo hwdpanel
 ## Comprobaciones rápidas
 
 ```bash
-# ¿Está libre el puerto 80?
-sudo ss -ltnp 'sport = :80'
+# ¿Está escuchando el puerto del sitio?
+sudo ss -ltnp 'sport = :80'          # cambie 80 por su puerto
 
-# Comprobar un paquete de extensión de PHP (usa la versión real de PHP-FPM)
-dpkg -s php8.3-<extension>
+# Comprobar una extensión de PHP
+dpkg -s php8.3-<extension>           # Ubuntu / Debian
+rpm -q php-<extension>               # AlmaLinux / Rocky / RHEL
+
+# Extensiones cargadas, en cualquier sistema
+php -m
 ```
+
+<Note>
+  En AlmaLinux, `pdo_mysql` viene dentro de **`php-mysqlnd`**: el paquete `php-mysql` no existe.
+</Note>
