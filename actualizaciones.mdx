@@ -32,3 +32,30 @@ Las actualizaciones de HWD POS deben realizarse desde la interfaz del sistema.
     Compruebe que el sistema funcione correctamente después de finalizar.
   </Step>
 </Steps>
+
+## Qué toca una actualización y qué no
+
+| Se actualiza | No se toca |
+| --- | --- |
+| El código del sistema: `app`, `config`, `resources`, `public`, `database` y `scripts`. | Los **complementos** (`plugins/`) y sus datos. |
+| La estructura de la base de datos (migraciones). | La configuración del servidor (`storage/config.php`). |
+|  | Las subidas: fotos, logos y firmas. |
+
+Los complementos se actualizan por su propia pantalla, subiendo su `.zip`.
+
+<Note>
+  Tras una actualización que cambie los servicios de fondo, reinícielos **una vez**: `hwdpanel` →
+  opción **17**. Los servicios recogen el código nuevo por su cuenta, pero reiniciarlos una vez cierra
+  cualquier proceso que quedara con el código anterior.
+</Note>
+
+## Reejecutar el instalador
+
+Es seguro y **no borra datos**: vuelve a poner permisos, configuración del servidor web, servicios y
+cortafuegos en su sitio. Es la forma más rápida de arreglar un servidor al que le cambiaron algo, y
+también la forma de cambiar el [puerto del sitio](/puerto).
+
+```bash
+sudo bash /var/www/HWDPOS/deploy/install-ubuntu.sh        # Ubuntu / Debian
+sudo bash /var/www/HWDPOS/deploy/install-almalinux.sh     # AlmaLinux / Rocky / RHEL
+```
