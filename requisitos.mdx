@@ -11,16 +11,23 @@ componente** que se instala, consulte [Componentes del sistema](/componentes).
 
 Hay **un instalador por familia de sistema**, con las mismas preguntas y el mismo resumen final.
 
-| Sistema | Versiones probadas | Instalador |
+| Sistema | Versiones | Instalador |
 | --- | --- | --- |
-| **Ubuntu Server** | **24.04 LTS** (recomendada), 22.04 LTS | `install-ubuntu.sh` |
+| **Ubuntu Server** *(recomendado)* | **24.04 LTS** (recomendada), 22.04 LTS | `install-ubuntu.sh` |
 | **Debian** | 12 | `install-ubuntu.sh` |
-| **AlmaLinux** | **9** (recomendada), 8 | `install-almalinux.sh` |
+| **AlmaLinux** | 9 (recomendada), 8 | `install-almalinux.sh` |
 | **Rocky Linux / RHEL / CentOS Stream** | 9, 8 | `install-almalinux.sh` |
 
+**Todos los sistemas de la tabla sirven** y quedan igual de funcionales al terminar: mismos modos,
+mismas preguntas y mismo resumen.
+
 <Tip>
-  **Recomendación: Ubuntu Server 24.04 LTS.** Trae PHP 8.3 en sus repositorios oficiales, es la
-  combinación más probada y la que menos pasos manuales necesita.
+  **Aun así, la recomendación es Ubuntu Server 24.04 LTS.** Es el sistema sobre el que se configura y
+  se prueba principalmente HWD POS, así que es el terreno conocido: trae PHP 8.3 en sus repositorios
+  oficiales, necesita menos pasos manuales y, si algo sale mal, se diagnostica más rápido.
+
+  Si puede elegir el sistema del servidor, elija Ubuntu. Si ya tiene un servidor con AlmaLinux, Rocky,
+  RHEL o CentOS, instale ahí sin problema: está admitido y tiene su propio instalador.
 </Tip>
 
 <Warning>
